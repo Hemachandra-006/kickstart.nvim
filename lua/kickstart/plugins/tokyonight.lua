@@ -14,7 +14,18 @@ return {
         styles = {
           comments = { italic = false }, -- Disable italics in comments
         },
+
+        on_colors = function(colors)
+          colors.bg = "#0b0e13"
+          colors.bg_dark = "#0b0e13"
+          colors.bg_float = "#0b0e13"
+          colors.bg_sidebar = "#0b0e13"
+          colors.blue = "#666666"
+          colors.bg_highlight = "#151a20"
+        end
       }
+
+
 
       -- Load the colorscheme here.
       -- Like many other themes, this one has different styles, and you could load
