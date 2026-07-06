@@ -68,5 +68,24 @@ vim.o.scrolloff = 15
 -- instead raise a dialog asking if you wish to save the current file(s)
 -- See `:help 'confirm'`
 vim.o.confirm = true
-
+vim.opt.laststatus = 3
 -- vim: ts=2 sts=2 sw=2 et
+--
+--
+
+local function icpc_layout()
+    vim.cmd("leftabove vsplit input.txt")
+    vim.cmd("split output.txt")
+    vim.cmd("vertical resize " .. math.floor(vim.o.columns * 0.25))
+    vim.cmd("wincmd l")
+end
+
+vim.api.nvim_create_autocmd("VimEnter", {
+    callback = function()
+        local cwd = vim.fn.getcwd()
+
+        if vim.fn.filereadable(cwd .. "/input.txt") == 1 then
+            vim.schedule(icpc_layout)
+        end
+    end,
+})

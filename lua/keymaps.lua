@@ -8,17 +8,17 @@ vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 -- Diagnostic Config & Keymaps
 -- See :help vim.diagnostic.Opts
 vim.diagnostic.config {
-  update_in_insert = false,
-  severity_sort = true,
-  float = { border = 'rounded', source = 'if_many' },
-  underline = { severity = { min = vim.diagnostic.severity.WARN } },
+	update_in_insert = false,
+	severity_sort = true,
+	float = { border = 'rounded', source = 'if_many' },
+	underline = { severity = { min = vim.diagnostic.severity.WARN } },
 
-  -- Can switch between these as you prefer
-  virtual_text = true, -- Text shows up at the end of the line
-  virtual_lines = false, -- Text shows up underneath the line, with virtual lines
+	-- Can switch between these as you prefer
+	virtual_text = true, -- Text shows up at the end of the line
+	virtual_lines = false, -- Text shows up underneath the line, with virtual lines
 
-  -- Auto open the float, so you can easily read the errors when jumping with `[d` and `]d`
-  jump = { float = true },
+	-- Auto open the float, so you can easily read the errors when jumping with `[d` and `]d`
+	jump = { float = true },
 }
 
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
@@ -31,12 +31,54 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
+
+local function icpc_layout()
+  vim.cmd("wincmd h")
+  -- vim.cmd("vertical resize 30")
+  vim.cmd("vertical resize " .. math.floor(vim.o.columns * 0.25))
+  vim.cmd("wincmd l")
+  vim.notify("Refreshed")
+end
+
+vim.keymap.set('n','<F6>',icpc_layout, {desc = "Refresh layout for icpc"}
+)
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 -- vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
 -- vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
 -- vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
+vim.keymap.set('n', '<F5>', function()
+	local cpp_file
 
+	for _, win in ipairs(vim.api.nvim_tabpage_list_wins(0)) do
+		local buf = vim.api.nvim_win_get_buf(win)
+		local name = vim.api.nvim_buf_get_name(buf)
+
+		if name:match '%.cpp$' then
+			cpp_file = name
+			break
+		end
+	end
+
+	if not cpp_file then
+		vim.notify('No C++ file open!', vim.log.levels.ERROR)
+		return
+	end
+
+	local root = vim.fn.getcwd()
+	local exe = '/tmp/cp_run'
+	local file = cpp_file
+	vim.cmd 'wa'
+	local cmd = string.format("g++ -std=c++20 -O2 '%s' -o '%s' && '%s' < '%s/input.txt' > '%s/output.txt'", file, exe, exe, root, root)
+	local output = vim.system({ 'fish', '-c', cmd }):wait()
+
+	if output.code == 0 then
+		vim.cmd 'checktime'
+		vim.notify 'Successful'
+	else
+		vim.notify(output.stderr ~= '' and output.stderr or output.stdout, vim.log.levels.ERROR)
+	end
+end, { desc = 'Compile and run c++' })
 -- Keybinds to make split navigation easier.
 --  Use CTRL+<hjkl> to switch between windows
 --
@@ -59,9 +101,9 @@ vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper win
 --  Try it with `yap` in normal mode
 --  See `:help vim.hl.on_yank()`
 vim.api.nvim_create_autocmd('TextYankPost', {
-  desc = 'Highlight when yanking (copying) text',
-  group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
-  callback = function() vim.hl.on_yank() end,
+	desc = 'Highlight when yanking (copying) text',
+	group = vim.api.nvim_create_augroup('kickstart-highlight-yank', { clear = true }),
+	callback = function() vim.hl.on_yank() end,
 })
 
 -- vim: ts=2 sts=2 sw=2 et
